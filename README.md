@@ -29,4 +29,21 @@ source slcsp-env/bin/activate
 
 ## Running the Script
 
-...
+TBD
+
+The script's usage message is printed below for reference.
+
+```
+usage: calc_slcsp.py [-h] -p PLANS -z ZIPS -i INPUT [--log LOG]
+
+Determine the second lowest cost silver plan (SLCSP) for a group of ZIP codes. Results printed to stdout.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PLANS, --plans PLANS
+                        CSV file that contains all the health plans in the U.S. on the marketplace
+  -z ZIPS, --zips ZIPS  CSV file that contains a mapping of ZIP code to county/counties & rate area(s)
+  -i INPUT, --input INPUT
+                        CSV file that contains desired ZIP codes in the first column
+  --log LOG             Set log level. Default: ERROR
+  ```
