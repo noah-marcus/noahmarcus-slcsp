@@ -1,6 +1,7 @@
 import argparse
 import os.path
 import logging
+import json
 
 def parse_plans_csv(plans_csv_file):
     """
@@ -45,7 +46,6 @@ def parse_plans_csv(plans_csv_file):
 
             # Save data if silver plan
             if metal_level.lower() == "silver":
-
                 # Add plan rate to dictionary
                 if rate_area_tuple in silver_plans_rates_dict:
                     # Check if new rate is lowest or second lowest
@@ -57,10 +57,9 @@ def parse_plans_csv(plans_csv_file):
 
                     elif silver_plans_rates_dict[rate_area_tuple]['second_lowest_rate'] == None \
                         or rate < silver_plans_rates_dict[rate_area_tuple]['second_lowest_rate']:
-                        # If new rate is lower than the current second lowest rate, but higher than the current lowest rate
-                        # replace the current second lowest rate
+                        # If new rate is lower than the current second lowest rate, but higher than the current lowest rate, replace the current second lowest rate
+                        # Or there is no second lowest rate yet, set the second lowest rate
                         silver_plans_rates_dict[rate_area_tuple]['lowest_rate'] = rate
-
 
                 # Create entry in dictionary if it does not exist yet
                 else:
@@ -69,7 +68,6 @@ def parse_plans_csv(plans_csv_file):
                         'second_lowest_rate': None,
                         'plan_id': plan_id
                    }
-
 
         return silver_plans_rates_dict
 
@@ -159,28 +157,27 @@ def generate_slcsp(input_csv_file, silver_plans_rates_dict, zip_code_to_rate_are
 
             # If zipcode is not given, skip line
             if not zipcode:
-                # As per instructions, adding empty line to file to conserver original input order
+                # As per instructions, adding empty line to file to conserve original input order
                 slcsp_result += "\n"
                 continue
 
-            # Flag for
-            not_possible = False
-            # if zipcode was not ambigious
+            # If zipcode was not ambigious
             if zip_code_to_rate_area_dict[zipcode]:
                 # Fetch rate area based on zip code
                 rate_area = zip_code_to_rate_area_dict[zipcode]
 
                 # Fetch second lowest rate from rate area
-                if rate_area in silver_plans_rates_dict:
+                if rate_area in silver_plans_rates_dict and silver_plans_rates_dict[rate_area]['second_lowest_rate']:
                     second_lowest_rate = silver_plans_rates_dict[rate_area]['second_lowest_rate']
 
+                    logging.debug(f"generate_slcsp::Second lowest rate found, {rate_area}, {zipcode}: {second_lowest_rate}")
                 else:
-                    # CHECK THIS
-                    print(f"No Rate Area in Silver Plan list -- rate_area: {rate_area}, zipcode: {zipcode}")
+                    # No rate area information or second plan in silver plan list, set second_lowest_rate to an empty string
+                    logging.debug(f"generate_slcsp::No rate area or second plan in silver plan list -- rate_area: {rate_area}, zipcode: {zipcode}")
                     second_lowest_rate = ""
             else:
                 # If zipcode was ambigious, set second_lowest_rate to an empty string
-                print(f"Zipcode was ambigious -- zipcode: {zipcode}")
+                logging.debug(f"generate_slcsp::Zipcode was ambigious -- zipcode: {zipcode}")
                 second_lowest_rate = ""
 
             # Add to result
@@ -216,19 +213,22 @@ def main():
         or not os.path.isfile(zips_csv_file) \
         or not os.path.isfile(input_csv_file):
 
-        logging.error(f"File Validation Error\nFile(s) given could not be validated as a file. Please check inputs to script.\nInput given -- Plans CSV: {plans_csv_file}, Zip CSV: {zips_csv_file}, Input CSV: {input_csv_file}\n")
+        logging.error(f"main::File Validation Error\nFile(s) given could not be validated as a file. Please check inputs to script.\nInput given -- Plans CSV: {plans_csv_file}, Zip CSV: {zips_csv_file}, Input CSV: {input_csv_file}\n")
         exit(1)
 
-    logging.info("Files Validated\nInput given -- Plans CSV: {plans_csv_file}, Zip CSV: {zips_csv_file}, Input CSV: {input_csv_file}")
+    logging.debug("main::Files Validated\nInput given -- Plans CSV: {plans_csv_file}, Zip CSV: {zips_csv_file}, Input CSV: {input_csv_file}")
 
     # Generate silver plan rates
     silver_plans_rates_dict = parse_plans_csv(plans_csv_file)
+    logging.debug("main::Silver plans rates dictionary generated.")
 
     # Generate zip code dictionary
     zip_code_to_rate_area_dict = parse_zips_csv(zips_csv_file)
+    logging.debug("main::Zip code to rate area dictionary generated.")
 
     # Find SLCSP for inputs
     slcsp_result = generate_slcsp(input_csv_file, silver_plans_rates_dict, zip_code_to_rate_area_dict)
+    logging.debug("main::Output generated.")
 
     # Output result to stdout
     print(slcsp_result)
