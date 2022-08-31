@@ -44,6 +44,6 @@ optional arguments:
                         CSV file that contains all the health plans in the U.S. on the marketplace
   -z ZIPS, --zips ZIPS  CSV file that contains a mapping of ZIP code to county/counties & rate area(s)
   -i INPUT, --input INPUT
-                        CSV file that contains desired ZIP codes in the first column
+                        CSV file that contains ZIP codes of interest in the first column
   --log LOG             Set log level. Default: ERROR
   ```

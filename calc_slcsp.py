@@ -73,6 +73,72 @@ def parse_plans_csv(plans_csv_file):
 
         return silver_plans_rates_dict
 
+def parse_zips_csv(zips_csv_file):
+    """
+    Parse zips csv file and generate zip_code_to_rate_area dictionary.
+
+    Parameters:
+    zips_csv_file : str
+        Filename given by user for csv file that contains a mapping of ZIP code to county/counties & rate area(s)
+
+    Returns:
+    zip_code_to_rate_area_dict : dict
+        key: zipcode : str
+        values: { tuple ('State', 'Rate Area') }
+    """
+    # Init return variable
+    zip_code_to_rate_area_dict = {}
+
+    # Open file
+    with open(zips_csv_file) as zips_csv:
+        # Skip first line in csv file
+        next(zips_csv)
+
+        # Compile zip codes and rate areas into dictionary
+        for zip in zips_csv:
+            # Split zip line by comma
+            zip_params = zip.strip().split(',')
+
+            # Parse zip values
+            zipcode = zip_params[0]
+            state = zip_params[1]
+            county_code = zip_params[2]
+            name = zip_params[3]
+            rate_area = int(zip_params[4])
+
+            # If data is incomplete, skip entry
+            if not zipcode or not state or not county_code or not name or not rate_area:
+                continue
+
+            # Create rate area tuple from parameters
+            rate_area_tuple = (state, rate_area)
+
+            if zipcode not in zip_code_to_rate_area_dict:
+                # If zipcode does not exist, add to dictionary
+                zip_code_to_rate_area_dict[zipcode] = rate_area_tuple
+            else:
+                # If zipcode is already in dictionary, we have a duplicate and the answer is ambigious
+                zip_code_to_rate_area_dict[zipcode] = None
+
+    return zip_code_to_rate_area_dict
+
+def generate_slcsp(input_csv_file, silver_plans_rates_dict, zip_code_to_rate_area_dict):
+    """
+    Parse zips csv file and generate zip_code_to_rate_area dictionary.
+
+    Parameters:
+    input_csv_file : str
+        Filename given by user for csv file that contains ZIP codes of interest
+    silver_plans_rates_dict : dict
+        Dictionary linking silver plans to their second lowest rates
+    zip_code_to_rate_area_dict : dict
+        Dictionary linking zip codes to rate areas
+
+    Returns:
+    slcsp_result : str
+        CSV formatted string of input (ZIP codes of interest) with the slcsp in the second column
+    """
+
 def main():
     """
     Main function of calc_slcsp.py.
@@ -109,7 +175,11 @@ def main():
     # Generate silver plan rates
     silver_plans_rates_dict = parse_plans_csv(plans_csv_file)
 
-    print(silver_plans_rates_dict)
+    # Generate zip code dictionary
+    zip_code_to_rate_area_dict = parse_zips_csv(zips_csv_file)
+
+    # Find SLCSP for inputs
+    slcsp_result = generate_slcsp(input_csv_file, silver_plans_rates_dict, zip_code_to_rate_area_dict)
 
 if __name__ == "__main__":
     main()
