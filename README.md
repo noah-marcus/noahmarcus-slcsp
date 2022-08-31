@@ -23,7 +23,7 @@ The script does not require any third-pary Python packges. It was built and test
 sudo apt-get install python3.8
 ```
 
-While not necessary, you may want to create a virtual enviroment for this project to enusre there is no accidental conflict with other Python projects on your machine. Instructions are provided below for this optional step:
+While not necessary, you may want to create a virtual enviroment for this project to enusre there are no accidental conflicts with other Python projects on your machine. Instructions are provided below for this optional step:
 
 ```
 # Navigate to project directory
