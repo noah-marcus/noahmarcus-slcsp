@@ -116,8 +116,10 @@ def parse_zips_csv(zips_csv_file):
             if zipcode not in zip_code_to_rate_area_dict:
                 # If zipcode does not exist, add to dictionary
                 zip_code_to_rate_area_dict[zipcode] = rate_area_tuple
-            else:
-                # If zipcode is already in dictionary, we have a duplicate and the answer is ambigious
+
+            elif rate_area_tuple != zip_code_to_rate_area_dict[zipcode]:
+                # If zipcode is already in dictionary with a different rate area,
+                # we have a duplicate and the answer is ambigious
                 zip_code_to_rate_area_dict[zipcode] = None
 
     return zip_code_to_rate_area_dict
@@ -138,6 +140,53 @@ def generate_slcsp(input_csv_file, silver_plans_rates_dict, zip_code_to_rate_are
     slcsp_result : str
         CSV formatted string of input (ZIP codes of interest) with the slcsp in the second column
     """
+
+    # Init return variable
+    slcsp_result = "zipcode,rate\n"
+
+    # Open file
+    with open(input_csv_file) as input_csv:
+        # Skip first line in csv file
+        next(input_csv)
+
+        # Compile zip codes and rate areas into dictionary
+        for input in input_csv:
+            # Split zip line by comma
+            input_params = input.strip().split(',')
+
+            # Parse zip values
+            zipcode = input_params[0]
+
+            # If zipcode is not given, skip line
+            if not zipcode:
+                # As per instructions, adding empty line to file to conserver original input order
+                slcsp_result += "\n"
+                continue
+
+            # Flag for
+            not_possible = False
+            # if zipcode was not ambigious
+            if zip_code_to_rate_area_dict[zipcode]:
+                # Fetch rate area based on zip code
+                rate_area = zip_code_to_rate_area_dict[zipcode]
+
+                # Fetch second lowest rate from rate area
+                if rate_area in silver_plans_rates_dict:
+                    second_lowest_rate = silver_plans_rates_dict[rate_area]['second_lowest_rate']
+
+                else:
+                    # CHECK THIS
+                    print(f"No Rate Area in Silver Plan list -- rate_area: {rate_area}, zipcode: {zipcode}")
+                    second_lowest_rate = ""
+            else:
+                # If zipcode was ambigious, set second_lowest_rate to an empty string
+                print(f"Zipcode was ambigious -- zipcode: {zipcode}")
+                second_lowest_rate = ""
+
+            # Add to result
+            slcsp_result += f"{zipcode},{second_lowest_rate}\n"
+
+    return slcsp_result
 
 def main():
     """
@@ -180,6 +229,9 @@ def main():
 
     # Find SLCSP for inputs
     slcsp_result = generate_slcsp(input_csv_file, silver_plans_rates_dict, zip_code_to_rate_area_dict)
+
+    # Output result to stdout
+    print(slcsp_result)
 
 if __name__ == "__main__":
     main()
