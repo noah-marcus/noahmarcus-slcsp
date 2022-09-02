@@ -59,7 +59,7 @@ def parse_plans_csv(plans_csv_file):
                         or rate < silver_plans_rates_dict[rate_area_tuple]['second_lowest_rate']:
                         # If new rate is lower than the current second lowest rate, but higher than the current lowest rate, replace the current second lowest rate
                         # Or there is no second lowest rate yet, set the second lowest rate
-                        silver_plans_rates_dict[rate_area_tuple]['lowest_rate'] = rate
+                        silver_plans_rates_dict[rate_area_tuple]['second_lowest_rate'] = rate
 
                 # Create entry in dictionary if it does not exist yet
                 else:
